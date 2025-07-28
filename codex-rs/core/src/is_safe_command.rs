@@ -1,8 +1,12 @@
 use crate::bash::try_parse_bash;
 use crate::bash::try_parse_word_only_commands_sequence;
+use tracing::debug;
 
 pub fn is_known_safe_command(command: &[String]) -> bool {
+    debug!("Calling is_known_safe_command with command: {command:#?}``");
+
     if is_safe_to_call_with_exec(command) {
+        debug!("It's safe to call this command, so we're going to just approve it");
         return true;
     }
 

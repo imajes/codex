@@ -172,10 +172,10 @@ impl From<Vec<InputItem>> for ResponseInputItem {
 }
 
 /// If the `name` of a `ResponseItem::FunctionCall` is either `container.exec`
-/// or shell`, the `arguments` field should deserialize to this struct.
+/// or shell`, or `command_exec`` the `arguments` field should deserialize to this struct.
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct ShellToolCallParams {
-    pub command: Vec<String>,
+    pub argv: Vec<String>,
     pub workdir: Option<String>,
 
     /// This is the maximum time in seconds that the command is allowed to run.
