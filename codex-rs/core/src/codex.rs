@@ -684,6 +684,8 @@ async fn submission_loop(
                     }
                 }
                 let default_shell = shell::default_user_shell().await;
+                debug!("Default User Shell Discovered as `{default_shell:#?}`");
+
                 sess = Some(Arc::new(Session {
                     client,
                     tx_event: tx_event.clone(),
@@ -1280,7 +1282,7 @@ async fn handle_response_item(
             let LocalShellAction::Exec(action) = action;
             tracing::info!("LocalShellCall: {action:?}");
             let params = ShellToolCallParams {
-                command: action.command,
+                argv: action.command,
                 workdir: action.working_directory,
                 timeout_ms: action.timeout_ms,
             };
@@ -1327,7 +1329,7 @@ async fn handle_function_call(
     call_id: String,
 ) -> ResponseInputItem {
     match name.as_str() {
-        "container.exec" | "shell" => {
+        "container.exec" | "shell" | "command_exec" => {
             let params = match parse_container_exec_arguments(arguments, sess, &call_id) {
                 Ok(params) => params,
                 Err(output) => {
@@ -1363,7 +1365,7 @@ async fn handle_function_call(
 
 fn to_exec_params(params: ShellToolCallParams, sess: &Session) -> ExecParams {
     ExecParams {
-        command: params.command,
+        command: params.argv,
         cwd: sess.resolve_path(params.workdir.clone()),
         timeout_ms: params.timeout_ms,
         env: create_env(&sess.shell_environment_policy),
@@ -1398,6 +1400,10 @@ fn maybe_run_with_user_profile(params: ExecParams, sess: &Session) -> ExecParams
             .user_shell
             .format_default_shell_invocation(params.command.clone());
         if let Some(command) = command {
+            debug!(
+                "About to run command `{command:#?}` in user shell `{0:#?}`",
+                sess.user_shell
+            );
             return ExecParams { command, ..params };
         }
     }
@@ -1489,6 +1495,8 @@ async fn handle_container_exec_with_params(
 
     sess.notify_exec_command_begin(&sub_id, &call_id, &params)
         .await;
+
+    debug!("About to exec, with params `{params:#?}` have passed safety checks");
 
     let params = maybe_run_with_user_profile(params, sess);
     let output_result = process_exec_tool_call(

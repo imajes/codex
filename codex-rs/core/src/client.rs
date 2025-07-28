@@ -128,6 +128,7 @@ impl ModelClient {
 
         let payload = ResponsesApiRequest {
             model: &self.config.model,
+            temperature: Some(0.1),
             instructions: &full_instructions,
             input: &prompt.input,
             tools: &tools_json,

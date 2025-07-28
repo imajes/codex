@@ -122,6 +122,7 @@ impl From<ReasoningSummaryConfig> for Option<OpenAiReasoningSummary> {
 #[derive(Debug, Serialize)]
 pub(crate) struct ResponsesApiRequest<'a> {
     pub(crate) model: &'a str,
+    pub(crate) temperature: Option<f32>,
     pub(crate) instructions: &'a str,
     // TODO(mbolin): ResponseItem::Other should not be serialized. Currently,
     // we code defensively to avoid this case, but perhaps we should use a
